@@ -1,109 +1,20 @@
 ﻿#include <iostream>
 #include <map>
 #include <vector>
-#include "my_class.h"
-
+#include "global.h"
 using namespace std;
 
-vector<Line> LineList;
-vector<Circle> CircleList;
-vector<pair<float, float>> floatPointList;
-vector<pair<pair<int, int>, pair<int, int>>> PointList;
-
-int getDivisor(int x, int y) {
-    if (x < y) {
-        getDivisor(y, x);
-    }
-    else {
-        if (y == 0) {
-            return x;
-        }
-        else {
-            getDivisor(y, x % y);
-        }
-    }
-}
-
-pair<int, int> getPair(int deltaX, int deltaY) {
-    int divisor;
-    if (deltaX < 0) {
-        deltaX = -deltaX;
-        deltaY = -deltaY;
-    }
-    if (deltaY < 0) {
-        divisor = getDivisor(deltaX, -deltaY);
-    }
-    else {
-        divisor = getDivisor(deltaX, deltaY);
-    }
-    if (divisor != 0) {
-        deltaX /= divisor;
-        deltaY /= divisor;
-    }
-    return pair<int, int>(deltaX, deltaY);
-}
-
-void initLine(int x1, int y1, int x2, int y2) {
-    int deltaX = x2 - x1;
-    int deltaY = y2 - y1;
-    pair<int, int> K = getPair(deltaX, deltaY);
-    pair<int, int> B;
-    if (K.first == 0 && K.second != 0) {
-        deltaY = x1;
-        deltaX = 1;
-        B = pair<int, int>(deltaX, deltaY);
-    }
-    else {
-        deltaX = K.first;
-        deltaY = K.first * y1 - K.second * x1;
-        B = getPair(deltaX, deltaY);
-    }
-    Line newline;
-    newline.init(K, B);
-    LineList.push_back(newline);
-}
-
-float Pair2float(pair<int, int> Pair) {
-    return (float)Pair.second / (float)Pair.first;
-}
-
-void PointList2float() {
-    for (int i = 0; i < PointList.size(); i++) {
-        float x = Pair2float(PointList.at(i).first);
-        float y = Pair2float(PointList.at(i).second);
-        floatPointList.push_back(pair<float, float>(x, y)); 
-    }
-}
-
-void addFloatPointList(float x0, float y0) {
-    int flag = 0;
-    for (int i = 0; i < floatPointList.size(); i++) {
-        float x = floatPointList.at(i).first;
-        float y = floatPointList.at(i).second;
-        if (x0 == x && y0 == y) {
-            flag = 1;
-            break;
-        }
-    }
-    if (flag == 0) {
-        floatPointList.push_back(pair<float, float>(x0, y0));
-    }
-    else {
-        flag = 0;
-    }
-}
-
 void Line_intersection() {
-    for (int i = 0; i < LineList.size() - 1; i++) {
+    for (int i = 0; i < (int)LineList.size() - 1; i++) {
         pair<int, int> k0 = LineList.at(i).getK();
-        for (int j = i + 1; j < LineList.size(); j++) {
+        pair<int, int> b0 = LineList.at(i).getB();
+        for (int j = i + 1; j < (int)LineList.size(); j++) {
             pair<int, int> k1 = LineList.at(j).getK();
+            pair<int, int> b1 = LineList.at(j).getB();
             if ((k0.first == k1.first) && (k0.second == k1.second)) {
                 continue;
             }
-            else {
-                pair<int, int> b0 = LineList.at(i).getB();
-                pair<int, int> b1 = LineList.at(j).getB();
+            else { 
                 pair <int, int> X, Y;
                 if (k0.first == 0) {
                     X = pair<int, int>(1, b0.second);
@@ -122,25 +33,12 @@ void Line_intersection() {
                         int second = (b1.second * b0.first - b0.second * b1.first) * (k0.first * k1.first);
                         int first = (b1.first * b0.first) * (k0.second * k1.first - k1.second * k0.first);
                         X = getPair(first, second);
-                        second = k0.second * b0.first * second + b0.second * k0.first * first;
-                        first = b0.first * k0.first * first;
+                        second = k0.second * b0.first * X.second + b0.second * k0.first * X.first;
+                        first = b0.first * k0.first * X.first;
                         Y = getPair(first, second);
                     }
                 }
-                int flag = 0;
-                for (int k = 0; k < PointList.size(); k++) {
-                    if (PointList.at(k).first.first == X.first && PointList.at(k).first.second == X.second &&
-                        PointList.at(k).second.first == Y.second && PointList.at(k).second.second == Y.second) {
-                        flag = 1;
-                        break;
-                    }
-                }
-                if (flag == 0) {
-                    PointList.push_back(pair<pair<int, int>, pair<int, int>>(X, Y));
-                }
-                else {
-                    flag = 0;
-                }
+                addPointList(X, Y);
             }
         }
     }
@@ -157,7 +55,7 @@ void CircleLine(Circle circle, Line line, int intersectionNum) {
         addFloatPointList(x1, y1);
         if (intersectionNum == 2) {
             float x2 = x1;
-            float y2 = - sqrtf(r0 * r0 - (x1 - x0) * (x1 - x0)) + y0;
+            float y2 = -sqrtf(r0 * r0 - (x1 - x0) * (x1 - x0)) + y0;
             addFloatPointList(x2, y2);
         }
         else {
@@ -185,8 +83,8 @@ void CircleLine(Circle circle, Line line, int intersectionNum) {
 }
 
 void Circle_intersection() {
-    for (int i = 0; i < CircleList.size() - 1; i++) {
-        for (int j = i + 1; j < CircleList.size(); j++) {
+    for (int i = 0; i < (int)CircleList.size() - 1; i++) {
+        for (int j = i + 1; j < (int)CircleList.size(); j++) {
             int x1, y1, r1, x2, y2, r2;
             x1 = CircleList.at(i).getX();
             y1 = CircleList.at(i).getY();
@@ -222,12 +120,12 @@ void Circle_intersection() {
 
 void CirLine_intersection() {
     float x0, y0, r0, k, b, d;
-    for (int i = 0; i < LineList.size(); i++) {
+    for (int i = 0; i < (int)LineList.size(); i++) {
         Line line = LineList.at(i);
-        for (int j = 0; j < CircleList.size(); j++) {
+        for (int j = 0; j < (int)CircleList.size(); j++) {
             Circle circle = CircleList.at(j);
-            x0 = circle.getX();
-            y0 = circle.getY();
+            x0 = (float)circle.getX();
+            y0 = (float)circle.getY();
             r0 = (float)circle.getR();
             if (line.getK().first == 0) {
                 b = Pair2float(line.getB());
@@ -254,7 +152,7 @@ void CirLine_intersection() {
 
 
 
-int main()
+int main(int argc, char* argv[])
 {
     int n;
     cin >> n;
@@ -264,14 +162,12 @@ int main()
         if (type == 'L') {
             int x1, y1, x2, y2;
             cin >> x1 >> y1 >> x2 >> y2;
-            initLine(x1, y1, x2, y2);
+            initLineList(x1, y1, x2, y2);
         }
         else if (type == 'C') {
             int x, y, r;
             cin >> x >> y >> r;
-            Circle newcircle;
-            newcircle.init(x, y, r);
-            CircleList.push_back(newcircle);
+            initCircleList(x, y, r);
         }
     }
     if (LineList.size() != 0) {
