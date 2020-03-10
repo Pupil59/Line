@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <map>
 #include <vector>
+#include <fstream>
 #include "global.h"
 using namespace std;
 
@@ -154,19 +155,32 @@ void CirLine_intersection() {
 
 int main(int argc, char* argv[])
 {
+    string out = "";
+    string in = "";
+    for (int i = 0; i < argc; i++) {
+        if (argv[i][0] == '-' && argv[i][1] == 'i') {
+            in = argv[i+1];
+        }else if (argv[i][0] == '-' && argv[i][1] == 'o') {
+            out = argv[i+1];
+        }
+    }
+    
+    ifstream fin(in);
+    ofstream fout(out);
+    
     int n;
-    cin >> n;
+    fin >> n;
     for (int i = 0; i < n; i++) {
         char type;
-        cin >> type;
+        fin >> type;
         if (type == 'L') {
             int x1, y1, x2, y2;
-            cin >> x1 >> y1 >> x2 >> y2;
+            fin >> x1 >> y1 >> x2 >> y2;
             initLineList(x1, y1, x2, y2);
         }
         else if (type == 'C') {
             int x, y, r;
-            cin >> x >> y >> r;
+            fin >> x >> y >> r;
             initCircleList(x, y, r);
         }
     }
@@ -177,10 +191,10 @@ int main(int argc, char* argv[])
         PointList2float();
         Circle_intersection();
         CirLine_intersection();
-        cout << floatPointList.size() << endl;
+        fout << floatPointList.size() << endl;
     }
     else {
-        cout << PointList.size() << endl;
+        fout << PointList.size() << endl;
     }
 
     return 0;
