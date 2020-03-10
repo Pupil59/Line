@@ -164,7 +164,6 @@ int main(int argc, char* argv[])
             out = argv[i+1];
         }
     }
-    
     ifstream fin(in);
     ofstream fout(out);
     
